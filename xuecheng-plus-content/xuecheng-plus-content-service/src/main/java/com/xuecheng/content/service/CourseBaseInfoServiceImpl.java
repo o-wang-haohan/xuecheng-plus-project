@@ -2,15 +2,25 @@ package com.xuecheng.content.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
 import com.xuecheng.content.mapper.CourseBaseMapper;
+import com.xuecheng.content.mapper.CourseCategoryMapper;
+import com.xuecheng.content.mapper.CourseMarketMapper;
+import com.xuecheng.content.model.dto.AddCourseDto;
+import com.xuecheng.content.model.dto.CourseBaseInfoDto;
 import com.xuecheng.content.model.dto.QueryCourseParamsDto;
 import com.xuecheng.content.model.po.CourseBase;
+import com.xuecheng.content.model.po.CourseCategory;
+import com.xuecheng.content.model.po.CourseMarket;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -22,6 +32,12 @@ import java.util.List;
 public class CourseBaseInfoServiceImpl implements CourseBaseInfoService{
     @Autowired
     CourseBaseMapper courseBaseMapper;
+
+    @Autowired
+    CourseMarketMapper courseMarketMapper;
+
+    @Autowired
+    CourseCategoryMapper courseCategoryMapper;
 
     @Override
     public PageResult<CourseBase> queryCourseBaseList(PageParams pageParams, QueryCourseParamsDto queryCourseParamsDto) {
@@ -47,7 +63,108 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService{
         // 构建结果集
         PageResult<CourseBase> courseBasePageResult = new PageResult<>(list, total, pageParams.getPageNo(), pageParams.getPageSize());
         return courseBasePageResult;
-
-
     }
+
+    //需要操作两张表，所以要保证数据一致性，使用原子操作；
+    @Transactional
+    @Override
+    public CourseBaseInfoDto addCourse(Long company_id, AddCourseDto addCourseDto) {
+        //首先第一步检查参数正确性,非空判断
+        if (StringUtils.isBlank(addCourseDto.getName())) {
+            throw new XueChengPlusException("课程名称为空");
+        }
+
+        if (StringUtils.isBlank(addCourseDto.getMt())) {
+            throw new XueChengPlusException("课程分类为空");
+        }
+
+        if (StringUtils.isBlank(addCourseDto.getSt())) {
+            throw new XueChengPlusException("课程分类为空");
+        }
+
+        if (StringUtils.isBlank(addCourseDto.getGrade())) {
+            throw new XueChengPlusException("课程等级为空");
+        }
+
+        if (StringUtils.isBlank(addCourseDto.getTeachmode())) {
+            throw new XueChengPlusException("教育模式为空");
+        }
+
+        if (StringUtils.isBlank(addCourseDto.getUsers())) {
+            throw new XueChengPlusException("适应人群");
+        }
+
+        if (StringUtils.isBlank(addCourseDto.getCharge())) {
+            throw new XueChengPlusException("收费规则为空");
+        }
+        //新增课程基础信息
+        CourseBase courseBase = new CourseBase();
+        BeanUtils.copyProperties(addCourseDto,courseBase);
+        courseBase.setCompanyId(company_id);
+        courseBase.setAuditStatus("202002");
+        courseBase.setStatus("203001");
+        courseBase.setCreateDate(LocalDateTime.now());
+        long insert = courseBaseMapper.insert(courseBase);
+        if(insert <= 0){
+            throw new XueChengPlusException("新增课程信息失败");
+        }
+        //新增课程营销信息
+        CourseMarket courseMarket = new CourseMarket();
+        BeanUtils.copyProperties(addCourseDto,courseMarket);
+        Long courseId = courseBase.getId();
+        courseMarket.setId(courseId);
+        int status = saveCourseMarket(courseMarket);
+        if(status<=0){
+            throw new XueChengPlusException("保存课程营销信息失败");
+        }
+
+        return getCourseBaseInfo(courseId);
+    }
+
+    public int saveCourseMarket(CourseMarket courseMarket){
+        String charge = courseMarket.getCharge();
+        if(StringUtils.isBlank(charge)){
+            throw new XueChengPlusException("收费规则没有选择");
+        }
+
+        if(charge.equals("201001")){
+            if(courseMarket.getPrice()== null || courseMarket.getPrice()<=0){
+                throw new XueChengPlusException("收费规则为收费，价格不能为空或者小于等于0");
+            }
+        }
+        //首先查询是否存在该课程营销信息，不存在新增，存在更新即可；
+        CourseMarket courseMarketObj = courseMarketMapper.selectById(courseMarket.getId());
+        if(courseMarketObj==null){
+            int insert = courseMarketMapper.insert(courseMarket);
+            return insert;
+        }else{
+            BeanUtils.copyProperties(courseMarket,courseMarketObj);
+            courseMarketObj.setId(courseMarket.getId());
+            return courseMarketMapper.updateById(courseMarketObj);
+        }
+    }
+
+    public CourseBaseInfoDto getCourseBaseInfo(Long courseId){
+        CourseBaseInfoDto courseBaseInfoDto = new CourseBaseInfoDto();
+        //查询课程基本信息
+        CourseBase courseBase = courseBaseMapper.selectById(courseId);
+        if(courseBase==null){
+            return null;
+        }
+        BeanUtils.copyProperties(courseBase, courseBaseInfoDto);
+
+        //查询课程营销信息
+        CourseMarket courseMarket = courseMarketMapper.selectById(courseId);
+        if(courseMarket!=null){
+            BeanUtils.copyProperties(courseMarket, courseBaseInfoDto);
+        }
+        //检查CourseBaseInfoDto是否所有信息都添加完毕
+        //联合分类表查询大分类和小分类的名称
+        CourseCategory courseCategorySt = courseCategoryMapper.selectById(courseBase.getSt());
+        CourseCategory courseCategoryMt = courseCategoryMapper.selectById(courseBase.getMt());
+        courseBaseInfoDto.setStName(courseCategorySt.getName());
+        courseBaseInfoDto.setMtName(courseCategoryMt.getName());
+        return courseBaseInfoDto;
+    }
+
 }
