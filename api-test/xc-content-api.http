@@ -9,7 +9,7 @@ Content-Type: application/json
 }
 
 ###
-GET {{content_host}}/content/course-category/tree-nodes
+GET {{gateway_host}}/content/course-category/tree-nodes
 
 
 ### 创建课程
@@ -33,4 +33,34 @@ Content-Type: application/json
   "tags": "测试课程103",
   "grade": "204001",
   "description": "测试"
+}
+
+### 查询课程信息
+GET {{content_host}}/content/course/40
+Content-Type: application/json
+
+###课程计划查询
+GET {{content_host}}/content/teachplan/117/tree-nodes
+Content-Type: application/json
+
+### 新增课程计划--节,从数据库找到第一级的课程计划id向其下边添加计划
+POST {{content_host}}/content/teachplan
+Content-Type: application/json
+
+{
+  "courseId" : 74,
+  "parentid": 247,
+  "grade" : 2,
+  "pname" : "小节名称 [点击修改]"
+}
+
+### 新增课程计划--章
+POST {{content_host}}/content/teachplan
+Content-Type: application/json
+
+{
+  "courseId" : 74,
+  "parentid": 0,
+  "grade" : 1,
+  "pname" : "新章名称 [点击修改]"
 }
