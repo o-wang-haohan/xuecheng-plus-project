@@ -60,8 +60,10 @@ public class MediaFilesController {
         upload.transferTo(tempFile);
         //文件路径
         String absolutePath = tempFile.getAbsolutePath();
+        //文件存储路径
+        String savePath = folder+"/"+objectName;
         //上传文件
-        UploadFileResultDto uploadFileResultDto = mediaFileService.uploadFile(companyId, uploadFileParamsDto, absolutePath);
+        UploadFileResultDto uploadFileResultDto = mediaFileService.uploadFile(companyId, uploadFileParamsDto, absolutePath,savePath);
         return uploadFileResultDto;
     }
 

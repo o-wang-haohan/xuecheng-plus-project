@@ -88,7 +88,7 @@ public class MediaFileServiceImpl implements MediaFileService {
  }
 
  @Override
- public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String localFilePath) {
+ public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String localFilePath,String objectName) {
   //将文件写入MioIO
   File file = new File(localFilePath);
   if(!file.exists()){
@@ -100,7 +100,9 @@ public class MediaFileServiceImpl implements MediaFileService {
   //文件名的获取，层级采用当前年月日的日期，文件名对内容进行md5值加上扩展名
   String defaultFolderPath = getDefaultFolderPath();
   String fileMd5 = getFileMd5(file);
-  String objectName = defaultFolderPath+fileMd5+extension;
+  if(StringUtils.isEmpty(objectName)){
+   objectName =  defaultFolderPath + fileMd5 + extension;
+  }
   boolean b = addMediaFilesToMinIO(localFilePath,mimeType,bucket_Files,objectName);
   //文件大小
   uploadFileParamsDto.setFileSize(file.length());
@@ -426,6 +428,13 @@ public class MediaFileServiceImpl implements MediaFileService {
   }
   return null;
  }
+
+ @Override
+ public MediaFiles getFileById(String mediaId) {
+  MediaFiles mediaFiles = mediaFilesMapper.selectById(mediaId);
+  return mediaFiles;
+ }
+
  /**
   * 得到合并后的文件的地址
   * @param fileMd5 文件id即md5值
