@@ -9,6 +9,7 @@ import com.xuecheng.content.model.dto.EditCourseDto;
 import com.xuecheng.content.model.dto.QueryCourseParamsDto;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.content.service.CourseBaseInfoService;
+import com.xuecheng.content.util.SecurityUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,7 @@ public class CourseBaseInfoController {
     @GetMapping("/course/{courseId}")
     public CourseBaseInfoDto getCourseBase(@PathVariable Long courseId){
         CourseBaseInfoDto courseBaseInfoDto = courseBaseInfoService.getCourseBaseInfo(courseId);
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
         return courseBaseInfoDto;
     }
 
