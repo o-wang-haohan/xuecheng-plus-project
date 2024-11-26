@@ -1,0 +1,69 @@
+###
+POST {{content_host}}/content/course/list?pageNo=1&pageSize=5
+Content-Type: application/json
+
+{
+  "auditStatus": "202002",
+  "courseName": "",
+  "publishStatus": ""
+}
+
+###
+GET {{gateway_host}}/content/course-category/tree-nodes
+
+
+### 创建课程
+POST {{content_host}}/content/course
+Content-Type: application/json
+
+{
+  "charge": "201000",
+  "price": "101",
+  "originalPrice":"101",
+  "qq": "22333",
+  "wechat": "223344",
+  "phone": "13333333",
+  "validDays": 365,
+  "mt": "1-1",
+  "st": "1-1-1",
+  "name": "",
+  "pic": "测试课程103",
+  "teachmode": "200002",
+  "users": "初级人员",
+  "tags": "测试课程103",
+  "grade": "204001",
+  "description": "测试"
+}
+
+### 查询课程信息
+GET {{gateway_host}}/content/course/40
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsieHVlY2hlbmctcGx1cyJdLCJ1c2VyX25hbWUiOiJ7XCJiaXJ0aGRheVwiOlwiMjAyMi0wOS0yOFQxOToyODo0NlwiLFwiY3JlYXRlVGltZVwiOlwiMjAyMi0wOS0yOFQwODozMjowM1wiLFwiaWRcIjpcIjUwXCIsXCJuYW1lXCI6XCLlrabnlJ8xXCIsXCJuaWNrbmFtZVwiOlwi5aSn5rC054mbXCIsXCJzZXhcIjpcIjFcIixcInN0YXR1c1wiOlwiMVwiLFwidXNlcm5hbWVcIjpcInN0dTFcIixcInVzZXJwaWNcIjpcImh0dHA6Ly9maWxlLnh1ZWNoZW5nLXBsdXMuY29tL2RkZGZcIixcInV0eXBlXCI6XCIxMDEwMDFcIn0iLCJzY29wZSI6WyJhbGwiXSwiZXhwIjoxNzMyMTc0MTA3LCJhdXRob3JpdGllcyI6WyJwMSJdLCJqdGkiOiJkZjYzN2NiOC0xOTk5LTRkYWUtYTc2NS0zNDg4NDc1MmVhN2EiLCJjbGllbnRfaWQiOiJYY1dlYkFwcCJ9.4pcQV2b6EHXHTupPYbnl-9yqAQoz89OXXfPVMaCXuV4
+
+###课程计划查询
+GET {{content_host}}/content/teachplan/117/tree-nodes
+Content-Type: application/json
+
+### 新增课程计划--节,从数据库找到第一级的课程计划id向其下边添加计划
+POST {{content_host}}/content/teachplan
+Content-Type: application/json
+
+{
+  "courseId" : 74,
+  "parentid": 247,
+  "grade" : 2,
+  "pname" : "小节名称 [点击修改]"
+}
+
+### 新增课程计划--章
+POST {{content_host}}/content/teachplan
+Content-Type: application/json
+
+{
+  "courseId" : 74,
+  "parentid": 0,
+  "grade" : 1,
+  "pname" : "新章名称 [点击修改]"
+}
+
+### 查询课程发布信息
+GET {{content_host}}/content/r/coursepublish/2
