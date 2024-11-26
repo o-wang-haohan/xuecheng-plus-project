@@ -13,6 +13,7 @@ import com.xuecheng.content.util.SecurityUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +35,7 @@ public class CourseBaseInfoController {
     private CourseBaseInfoService courseBaseInfoService;
 
     @ApiOperation("课程分页查询接口")
+    @PreAuthorize("hasAuthority('xc_teachmanager_course_list')")
     @PostMapping("/course/list")
     public PageResult<CourseBase> list(PageParams pageParams, @RequestBody(required=false) QueryCourseParamsDto queryCourseParamsDto) {
 
@@ -51,6 +53,7 @@ public class CourseBaseInfoController {
     }
 
     @ApiOperation("课程查询接口")
+    @PreAuthorize("hasAuthority('xc_teachmanager_course_list')")
     @GetMapping("/course/{courseId}")
     public CourseBaseInfoDto getCourseBase(@PathVariable Long courseId){
         CourseBaseInfoDto courseBaseInfoDto = courseBaseInfoService.getCourseBaseInfo(courseId);
